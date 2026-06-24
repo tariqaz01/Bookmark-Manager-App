@@ -30,7 +30,7 @@ export default function Sidebar({ selectedTags = [], onTagToggle }: SidebarProps
   
 
   return (
-    <aside className="w-64 bg-white border-r border-border p-4 flex flex-col">
+    <aside className="w-64 bg-white border-r border-e-gray-200 p-4 flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 bg-green-800 rounded-lg flex items-center justify-center">

@@ -2,18 +2,12 @@
 
 import { Eye, Calendar, Star, MoreVertical } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
+import { Bookmark } from "../bookmarks/BookmarkGrid"
 
 interface BookmarkCardProps {
-  bookmark: {
-    id: number
-    title: string
-    url: string
-    description: string
-    tags: string[]
-    icon: string
-    stats: { views: number; date: string; stars: number }
-    iconColor: string
-  }
+  bookmark: Bookmark
+  onRemove?: (id: string | number) => void;
+  isLoggedIn?: boolean;
 }
 
 const tagColors: Record<string, string> = {
@@ -32,7 +26,47 @@ const tagColors: Record<string, string> = {
   Tutorial: "bg-[#ccfbf1] text-[#0d9488]",
 }
 
-export default function Card({ bookmark }: BookmarkCardProps) {
+const getTagColors = (tag: string) => {
+  if (tagColors[tag]) return tagColors[tag];
+  
+  const matchedKey = Object.keys(tagColors).find(
+    (k) => k.toLowerCase() === tag.toLowerCase()
+  );
+  if (matchedKey) return tagColors[matchedKey];
+
+  // Dynamic color based on hash of string
+  const defaultThemes = [
+    "bg-blue-50 text-blue-700 border border-blue-100",
+    "bg-purple-50 text-purple-700 border border-purple-100",
+    "bg-pink-50 text-pink-700 border border-pink-100",
+    "bg-amber-50 text-amber-700 border border-amber-100",
+    "bg-emerald-50 text-emerald-700 border border-emerald-100",
+    "bg-indigo-50 text-indigo-700 border border-indigo-100",
+    "bg-rose-50 text-rose-700 border border-rose-100",
+    "bg-cyan-50 text-cyan-700 border border-cyan-100",
+  ];
+  
+  let hash = 0;
+  for (let i = 0; i < tag.length; i++) {
+    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % defaultThemes.length;
+  return defaultThemes[index];
+};
+
+const getDomain = (url: string) => {
+  try {
+    const cleanUrl = url.startsWith("http://") || url.startsWith("https://") 
+      ? url 
+      : `https://${url}`;
+    const urlObj = new URL(cleanUrl);
+    return urlObj.hostname;
+  } catch (e) {
+    return url;
+  }
+};
+
+export default function Card({ bookmark, onRemove, isLoggedIn = false }: BookmarkCardProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,23 +82,53 @@ export default function Card({ bookmark }: BookmarkCardProps) {
     };
   }, []);
 
+  const bookmarkUrl = bookmark.url.startsWith("http://") || bookmark.url.startsWith("https://") 
+    ? bookmark.url 
+    : `https://${bookmark.url}`;
+
   return (
     <>
     <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
       
       <div className="flex items-start gap-3 mb-3">
-        <span>BKicon</span>
+        <a 
+          href={bookmarkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-sm overflow-hidden hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: bookmark.iconColor || "#10B981" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://www.google.com/s2/favicons?domain=${getDomain(bookmark.url)}&sz=64`}
+            alt={bookmark.title}
+            className="w-6 h-6 object-contain bg-white rounded-md p-0.5"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = "none";
+              const parent = target.parentElement;
+              if (parent) {
+                parent.innerText = bookmark.title.charAt(0).toUpperCase();
+              }
+            }}
+          />
+        </a>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground truncate">
-            {bookmark.title}
+          <h3 className="font-semibold text-foreground truncate hover:text-emerald-800 transition-colors">
+            <a href={bookmarkUrl} target="_blank" rel="noopener noreferrer">
+              {bookmark.title}
+            </a>
           </h3>
           <p className="text-xs text-muted-foreground truncate">
-            {bookmark.url}
+            <a href={bookmarkUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              {bookmark.url}
+            </a>
           </p>
         </div>
+        {isLoggedIn && (
         <div className="relative" ref={dropdownRef}>
           <div 
-            className="border border-gray-200 p-1 rounded-lg hover:bg-gray-50 transition-colors"
+            className="border border-gray-200 p-1 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <MoreVertical size={20}/>
@@ -76,7 +140,7 @@ export default function Card({ bookmark }: BookmarkCardProps) {
                 className="w-full cursor-pointer text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 onClick={() => {
                   setIsDropdownOpen(false);
-                  // Add remove logic here in the future
+                  onRemove?.(bookmark.id);
                 }}
               >
                 Remove
@@ -84,6 +148,7 @@ export default function Card({ bookmark }: BookmarkCardProps) {
             </div>
           )}
         </div>
+        )}
         
       </div>
       <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
@@ -93,7 +158,7 @@ export default function Card({ bookmark }: BookmarkCardProps) {
         {bookmark.tags.map((tag) => (
           <span
             key={tag}
-            className={`text-xs px-2 py-0.5 rounded-full ${tagColors[tag] || "bg-muted text-muted-foreground"}`}
+            className={`text-xs px-2 py-0.5 rounded-full border transition-all ${getTagColors(tag)}`}
           >
             {tag}
           </span>
@@ -102,15 +167,15 @@ export default function Card({ bookmark }: BookmarkCardProps) {
       <div className="flex items-center gap-4 text-xs text-muted-foreground border-t border-gray-200 pt-3">
         <span className="flex items-center gap-1">
           <Eye className="w-3.5 h-3.5" />
-          {bookmark.stats.views}
+          {bookmark.stats?.views ?? 0}
         </span>
         <span className="flex items-center gap-1">
           <Calendar className="w-3.5 h-3.5" />
-          {bookmark.stats.date}
+          {bookmark.stats?.date ?? "Today"}
         </span>
         <span className="flex items-center gap-1">
           <Star className="w-3.5 h-3.5" />
-          {bookmark.stats.stars}
+          {bookmark.stats?.stars ?? 0}
         </span>
       </div>
     </div>

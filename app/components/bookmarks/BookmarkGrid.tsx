@@ -3,7 +3,7 @@
 import { ArrowUpDown, Eye, Calendar, Star } from "lucide-react"
 import Card from "../card/Card"
 
-const bookmarks = [
+export const initialBookmarks = [
   {
     id: 1,
     title: "Frontend Mentor",
@@ -105,12 +105,26 @@ const bookmarks = [
   },
 ]
 
-interface BookmarkGridProps {
-  selectedTags?: string[]
-  searchQuery?: string
+export interface Bookmark {
+  id: number | string;
+  title: string;
+  url: string;
+  description: string;
+  tags: string[];
+  icon: string;
+  stats?: { views: number; date: string; stars: number };
+  iconColor: string;
 }
 
-export default function BookmarkGrid({ selectedTags = [], searchQuery = "" }: BookmarkGridProps) {
+interface BookmarkGridProps {
+  bookmarks: Bookmark[]
+  selectedTags?: string[]
+  searchQuery?: string
+  onRemove?: (id: string | number) => void
+  isLoggedIn?: boolean
+}
+
+export default function BookmarkGrid({ bookmarks, selectedTags = [], searchQuery = "", onRemove, isLoggedIn = false }: BookmarkGridProps) {
   const filteredBookmarks = bookmarks.filter((b) => {
     const matchesTags = selectedTags.length > 0 ? b.tags.some((t) => selectedTags.includes(t)) : true;
     const matchesSearch = b.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -126,11 +140,22 @@ export default function BookmarkGrid({ selectedTags = [], searchQuery = "" }: Bo
           Sort by
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredBookmarks.map((bookmark) => (
-          <Card key={bookmark.id} bookmark={bookmark} />
-        ))}
-      </div>
+      {filteredBookmarks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 rounded-2xl bg-white/50 text-center">
+          <p className="text-gray-500 font-medium mb-1">No bookmarks found</p>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+            {selectedTags.length > 0 || searchQuery 
+              ? "Try clearing your tag filters or changing your search query." 
+              : "Click the 'Add Bookmark' button at the top to save your first link!"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredBookmarks.map((bookmark) => (
+            <Card key={bookmark.id} bookmark={bookmark} onRemove={onRemove} isLoggedIn={isLoggedIn} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
