@@ -38,7 +38,7 @@ export default function Home() {
       return;
     }
 
-    // Clear previous bookmarks instantly before loading Firestore data
+    
     setBookmarks([]);
 
     const q = query(
@@ -77,7 +77,7 @@ export default function Home() {
 
   const handleAddClick = () => {
     if (!user) {
-      // If user is not logged in/registered, show signup (register) modal
+      
       setActiveAuthModal("register");
     } else {
       setIsAddModalOpen(true);
@@ -114,7 +114,7 @@ export default function Home() {
         console.error("Error deleting bookmark:", error);
       }
     }
-    // Guest users cannot remove bookmarks — handled at UI level via isLoggedIn prop
+    
   };
 
   return (
