@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/firebase";
+import { toast } from "sonner";
 
 interface RegisterProps {
   onClose: () => void;
@@ -41,9 +42,15 @@ export default function Register({ onClose, onLoginClick }: RegisterProps) {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast.success("Login successful!", {
+        duration: 2000,
+      });
       onClose();
     } catch (err: any) {
       setError(getErrorMessage(err.code));
+      toast.error(getErrorMessage(err.code), {
+        duration: 2000,
+      });
     } finally {
       setLoading(false);
     }
@@ -56,10 +63,16 @@ export default function Register({ onClose, onLoginClick }: RegisterProps) {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
+        toast.success("Login successful!", {
+          duration: 2000,
+        });
         onClose();
       }
     } catch (err: any) {
       setError(getErrorMessage(err.code));
+      toast.error(getErrorMessage(err.code), {
+        duration: 2000,
+      });
     } finally {
       setGoogleLoading(false);
     }

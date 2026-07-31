@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "firebase/auth";
 import { auth } from "@/firebase";
+import { toast } from "sonner";
 
 interface LoginProps {
   onClose: () => void;
@@ -50,9 +51,13 @@ export default function Login({ onClose, onRegisterClick }: LoginProps) {
       await updateProfile(userCredential.user, {
         displayName: name,
       });
+      toast.success("Account created successfully!", {
+        duration: 2000,
+      });
       onClose();
     } catch (err: any) {
       setError(getErrorMessage(err.code));
+      toast.error(getErrorMessage(err.code));
     } finally {
       setLoading(false);
     }
@@ -65,10 +70,16 @@ export default function Login({ onClose, onRegisterClick }: LoginProps) {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
+        toast.success("Account created successfully!", {
+          duration: 2000,
+        });
         onClose();
       }
     } catch (err: any) {
       setError(getErrorMessage(err.code));
+      toast.error(getErrorMessage(err.code), {
+        duration: 2000,
+      });
     } finally {
       setGoogleLoading(false);
     }

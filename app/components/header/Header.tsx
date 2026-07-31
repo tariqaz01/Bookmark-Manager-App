@@ -8,6 +8,7 @@ import Input from "../ui/Input"
 import Button from "../ui/Button"
 import ThemeToggle from "../ui/ThemeToggle"
 import logoutIcon from "@/public/svg/log-out.svg"
+import { toast, Toaster } from "sonner"
 
 interface HeaderProps {
   searchQuery?: string;
@@ -29,8 +30,13 @@ export function Header({ searchQuery = "", onSearchChange, onAddClick, onLoginCl
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      toast.success("Logout successful", {
+        duration: 1000,
+      });
+      
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Logout failed");
     }
   };
 
@@ -74,14 +80,14 @@ export function Header({ searchQuery = "", onSearchChange, onAddClick, onLoginCl
             width={24}
             height={24}
             sizes="50vw"
-            className="w-5 h-5 object-contain opacity-70 hover:opacity-100 transition-opacity" 
+            className="w-5 h-5 object-contain opacity-70 hover:opacity-100 transition-opacity dark:invert" 
           />
         </button>
       </div>
     ) : (
       <button 
         onClick={onLoginClick}
-        className="px-6 py-3.5 bg-emerald-800 dark:bg-emerald-700 text-white rounded-md hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors cursor-pointer"
+        className="px-6 py-3 text-sm cursor-pointer select-none rounded-xl active:scale-[0.98] bg-emerald-700/90 dark:bg-emerald-900/50 text-white dark:text-emerald-100 border-emerald-700/50 shadow-[0_0_20px_-5px_rgba(16,185,129,0.15)] backdrop-blur-md hover:bg-emerald-900/90 hover:border-emerald-500/60 hover:text-white"
       >
         Login / Signup
       </button>

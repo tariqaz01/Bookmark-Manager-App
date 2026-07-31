@@ -1,8 +1,6 @@
 "use client"
 import { ArchiveIcon, HomeIcon } from "lucide-react"
 
-
-
 interface SidebarProps {
   selectedTags?: string[];
   onTagToggle?: (tag: string) => void;
@@ -53,7 +51,7 @@ export default function Sidebar({ selectedTags = [], onTagToggle, tags = [], act
           onClick={() => onViewChange?.('archived')}
           className={`w-full flex items-center border cursor-pointer gap-3 px-3 py-2 rounded-lg transition-colors ${
             activeView === 'archived' 
-              ? 'border-amber-200 bg-amber-50 text-amber-700 font-medium dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400' 
+              ? 'border-amber-200 bg-amber-50 text-amber-700 font-medium dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400' 
               : 'border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
           }`}
         >

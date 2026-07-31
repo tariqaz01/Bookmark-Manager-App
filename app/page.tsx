@@ -2,7 +2,8 @@
 
 import Sidebar from "./components/sidebar/Sidebar";
 import { Header } from "./components/header/Header";
-import BookmarkGrid, { ArchiveGrid, initialBookmarks, Bookmark } from "./components/bookmarks/BookmarkGrid";
+import BookmarkGrid, { initialBookmarks, Bookmark } from "./components/bookmarks/BookmarkGrid";
+import ArchiveGrid from "./components/arhived/Archived";
 import AddBookmarkModal from "./components/bookmarks/AddBookmarkModal";
 import Register from "./components/login/Login";
 import Login from "./components/register/Register";
@@ -10,6 +11,7 @@ import { useState, useEffect, useMemo } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { auth, db } from "@/firebase";
+import { toast } from "sonner";
 
 export default function Home() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -110,8 +112,10 @@ export default function Home() {
           createdAt: new Date().toISOString(),
           stats: { views: 0, date: "Today", stars: 0 },
         });
+        toast.success("Bookmark added successfully");
       } catch (error) {
         console.error("Error adding bookmark to Firestore:", error);
+        toast.error("Failed to add bookmark");
       }
     } else {
       const bookmark: Bookmark = {
@@ -120,6 +124,7 @@ export default function Home() {
         stats: { views: 0, date: "Today", stars: 0 },
       };
       setBookmarks((prev) => [bookmark, ...prev]);
+      toast.success("Bookmark added locally");
     }
   };
 
@@ -127,11 +132,12 @@ export default function Home() {
     if (user) {
       try {
         await deleteDoc(doc(db, "bookmarks", id as string));
+        toast.success("Bookmark deleted successfully");
       } catch (error) {
         console.error("Error deleting bookmark:", error);
+        toast.error("Failed to delete bookmark");
       }
     }
-    
   };
 
   const handleArchiveBookmark = async (id: string | number) => {
@@ -140,11 +146,32 @@ export default function Home() {
         const { updateDoc, doc: firestoreDoc } = await import("firebase/firestore");
         const bookmark = bookmarks.find(b => b.id === id);
         await updateDoc(firestoreDoc(db, "bookmarks", id as string), { archived: !bookmark?.archived });
+        if (bookmark?.archived) {
+          toast.success("Bookmark unarchived successfully", {
+            duration: 2000,
+          });
+
+        } else {
+          toast.success("Bookmark archived successfully", {
+            duration: 2000,
+          });
+        }
       } catch (error) {
         console.error("Error archiving bookmark:", error);
+        toast.error("Failed to update bookmark status");
       }
     } else {
       setBookmarks(prev => prev.map(b => b.id === id ? { ...b, archived: !b.archived } : b));
+      const bookmark = bookmarks.find(b => b.id === id);
+      if (bookmark?.archived) {
+        toast.success("Bookmark unarchived locally", {
+          duration: 2000,
+        });
+      } else {
+        toast.success("Bookmark archived locally", {
+          duration: 2000,
+        });
+      }
     }
   };
 
@@ -159,7 +186,7 @@ export default function Home() {
           onViewChange={setActiveView}
           archivedCount={archivedCount}
         />
-        <main className="main-bg flex-1 bg-green-50 dark:bg-[#111315] transition-colors duration-300">
+        <main className="main-bg flex-1 bg-pink-50 dark:bg-[#111315] transition-colors duration-300">
           <Header
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}

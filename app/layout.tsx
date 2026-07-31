@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from 'sonner';
 
 const poppins = localFont({
   src: [
@@ -52,7 +53,10 @@ export default function RootLayout({
       lang="en"
       className="h-full antialiased"
     >
-      <body className={`min-h-full flex flex-col ${poppins.className}`}>{children}</body>
+      <body className={`min-h-full flex flex-col ${poppins.className}`}>
+        {children}
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   );
 }
