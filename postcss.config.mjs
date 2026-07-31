@@ -1,6 +1,13 @@
 const config = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    "@tailwindcss/postcss": {
+      config: {
+        darkMode: 'class',
+        content: [
+          "./app/**/*.{js,ts,jsx,tsx,mdx}",
+        ],
+      },
+    },
   },
 };
 

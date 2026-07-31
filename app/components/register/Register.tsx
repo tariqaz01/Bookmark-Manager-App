@@ -31,7 +31,6 @@ export default function Login({ onClose, onRegisterClick }: LoginProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -40,11 +39,6 @@ export default function Login({ onClose, onRegisterClick }: LoginProps) {
     e.preventDefault();
     setError("");
     
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters long.");
       return;
@@ -181,20 +175,7 @@ export default function Login({ onClose, onRegisterClick }: LoginProps) {
                 required
               />
             </div>
-            <div>
-              <label htmlFor="confirm-password" className="block mb-1.5 text-sm font-medium text-gray-900">Confirm password</label>
-              <input
-                type="password"
-                name="confirm-password"
-                id="confirm-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="••••••••"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5 outline-none"
-                required
-              />
-            </div>
+
             <div className="flex items-start">
               <div className="flex items-center h-5">
                 <input id="terms" aria-describedby="terms" type="checkbox" className="w-4 h-4 border border-gray-300 rounded bg-gray-50 cursor-pointer" required />

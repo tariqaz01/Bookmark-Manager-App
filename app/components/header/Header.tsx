@@ -1,12 +1,13 @@
 "use client"
-import { Search } from "lucide-react"
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { onAuthStateChanged, signOut, User } from "firebase/auth"
 import { auth } from "@/firebase"
+import { Search } from "lucide-react"
 import Input from "../ui/Input"
 import Button from "../ui/Button"
-import Register from "../login/Login"
-import Login from "../register/Register"
+import ThemeToggle from "../ui/ThemeToggle"
+import logoutIcon from "@/public/svg/log-out.svg"
 
 interface HeaderProps {
   searchQuery?: string;
@@ -34,47 +35,58 @@ export function Header({ searchQuery = "", onSearchChange, onAddClick, onLoginCl
   };
 
   return (
-    <div className="flex items-center gap-4  p-6 justify-between bg-white">
-      <div className="flex items-center border border-gray-200 w-[340px] p-2 rounded-lg">
-        <Search className="w-5 h-5" />
-        <Input 
-          value={searchQuery}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-          placeholder="Search by title..."
-        />
-      </div>
-      
-      {/* buttons */}
-      <div className="flex items-center gap-4">
-      <Button onClick={onAddClick} />
+    <div className="header-bar flex items-center gap-4 p-6 justify-between bg-white dark:bg-[#111315] border-b border-gray-100 dark:border-[#292d32] transition-colors duration-300">
+  <div className="search-bar flex items-center border border-gray-200 dark:border-[#343941] dark:bg-[#1a1d21] w-[340px] p-2 rounded-lg transition-colors duration-300">
+    <Search className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+    <Input 
+      value={searchQuery}
+      onChange={(e) => onSearchChange?.(e.target.value)}
+      placeholder="Search by title..."
+    />
+  </div>
+  
+  {/* buttons */}
+  <div className="flex items-center gap-3">
+    <ThemeToggle />
+    <Button onClick={onAddClick} />
 
-      {user ? (
-        <div className="flex items-center gap-3">
-          <span className=" text-white bg-blue-400 w-14 h-14 flex items-center justify-center rounded-full border border-gray-200">
-            {user.displayName || user.email}
-          </span>
-          <button 
-            onClick={handleLogout}
-            className="p-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100  rounded-lg transition-colors cursor-pointer flex items-center justify-center"
-            title="Logout"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src="/svg/log-out.svg" 
-              alt="Logout" 
-              className="w-5 h-5 object-contain opacity-70 hover:opacity-100 transition-opacity" 
-            />
-          </button>
-        </div>
-      ) : (
-        <button 
-          onClick={onLoginClick}
-          className="px-6 py-3.5 bg-emerald-800 text-white rounded-md hover:bg-emerald-700 transition-colors cursor-pointer"
+    {user ? (
+      <div className="flex items-center gap-3">
+        <div 
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-lg shadow-md border-2 border-white dark:border-[#292d32] ring-2 ring-indigo-50 dark:ring-indigo-950"
+          title={user.displayName || user.email || "User"}
         >
-          Login / Signup
+          {(user.displayName 
+            ? user.displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() 
+            : user.email 
+              ? user.email.substring(0, 2).toUpperCase() 
+              : "U")}
+        </div>
+
+        <button 
+          onClick={handleLogout}
+          className="p-2.5 bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-[#343941] hover:bg-gray-100 dark:hover:bg-[#24282e] rounded-lg transition-colors cursor-pointer flex items-center justify-center"
+          title="Logout"
+        >
+          <Image 
+            src={logoutIcon} 
+            alt="Logout" 
+            width={24}
+            height={24}
+            sizes="50vw"
+            className="w-5 h-5 object-contain opacity-70 hover:opacity-100 transition-opacity" 
+          />
         </button>
-      )}
       </div>
-    </div>
+    ) : (
+      <button 
+        onClick={onLoginClick}
+        className="px-6 py-3.5 bg-emerald-800 dark:bg-emerald-700 text-white rounded-md hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors cursor-pointer"
+      >
+        Login / Signup
+      </button>
+    )}
+  </div>
+</div>
   )
 }

@@ -2,11 +2,11 @@
 
 import Sidebar from "./components/sidebar/Sidebar";
 import { Header } from "./components/header/Header";
-import BookmarkGrid, { initialBookmarks, Bookmark } from "./components/bookmarks/BookmarkGrid";
+import BookmarkGrid, { ArchiveGrid, initialBookmarks, Bookmark } from "./components/bookmarks/BookmarkGrid";
 import AddBookmarkModal from "./components/bookmarks/AddBookmarkModal";
 import Register from "./components/login/Login";
 import Login from "./components/register/Register";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { auth, db } from "@/firebase";
@@ -16,9 +16,26 @@ export default function Home() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [activeAuthModal, setActiveAuthModal] = useState<'register' | 'login' | null>(null);
+  const [activeAuthModal, setActiveAuthModal] = useState<'login' | 'register' | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [activeView, setActiveView] = useState<'home' | 'archived'>('home');
+
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    bookmarks.filter(b => !b.archived).forEach((bookmark) => {
+      if (bookmark.tags) {
+        bookmark.tags.forEach((tag) => {
+          counts[tag] = (counts[tag] || 0) + 1;
+        });
+      }
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [bookmarks]);
+
+  const archivedCount = useMemo(() => bookmarks.filter(b => b.archived).length, [bookmarks]);
 
   // Listen to Auth State
   useEffect(() => {
@@ -59,6 +76,7 @@ export default function Home() {
           icon: data.icon || "default",
           iconColor: data.iconColor || "#3F54A3",
           stats: data.stats || { views: 0, date: "Today", stars: 0 },
+          archived: data.archived || false,
         });
       });
       setBookmarks(docs);
@@ -77,8 +95,7 @@ export default function Home() {
 
   const handleAddClick = () => {
     if (!user) {
-      
-      setActiveAuthModal("register");
+      setActiveAuthModal("login");
     } else {
       setIsAddModalOpen(true);
     }
@@ -117,11 +134,32 @@ export default function Home() {
     
   };
 
+  const handleArchiveBookmark = async (id: string | number) => {
+    if (user) {
+      try {
+        const { updateDoc, doc: firestoreDoc } = await import("firebase/firestore");
+        const bookmark = bookmarks.find(b => b.id === id);
+        await updateDoc(firestoreDoc(db, "bookmarks", id as string), { archived: !bookmark?.archived });
+      } catch (error) {
+        console.error("Error archiving bookmark:", error);
+      }
+    } else {
+      setBookmarks(prev => prev.map(b => b.id === id ? { ...b, archived: !b.archived } : b));
+    }
+  };
+
   return (
     <>
       <div className="flex min-h-screen">
-        <Sidebar selectedTags={selectedTags} onTagToggle={handleTagToggle} />
-        <main className="flex-1 bg-green-50">
+        <Sidebar 
+          selectedTags={selectedTags} 
+          onTagToggle={handleTagToggle} 
+          tags={tagCounts}
+          activeView={activeView}
+          onViewChange={setActiveView}
+          archivedCount={archivedCount}
+        />
+        <main className="main-bg flex-1 bg-green-50 dark:bg-[#111315] transition-colors duration-300">
           <Header
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -129,13 +167,22 @@ export default function Home() {
             onLoginClick={() => setActiveAuthModal("login")}
           />
 
-          <BookmarkGrid
-            bookmarks={bookmarks}
-            selectedTags={selectedTags}
-            searchQuery={searchQuery}
-            onRemove={handleRemoveBookmark}
-            isLoggedIn={!!user}
-          />
+          {activeView === 'home' ? (
+            <BookmarkGrid
+              bookmarks={bookmarks}
+              selectedTags={selectedTags}
+              searchQuery={searchQuery}
+              onRemove={handleRemoveBookmark}
+              onArchive={handleArchiveBookmark}
+              isLoggedIn={!!user}
+            />
+          ) : (
+            <ArchiveGrid
+              bookmarks={bookmarks}
+              onUnarchive={handleArchiveBookmark}
+              isLoggedIn={!!user}
+            />
+          )}
         </main>
       </div>
 

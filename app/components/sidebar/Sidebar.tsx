@@ -1,36 +1,22 @@
 "use client"
 import { ArchiveIcon, HomeIcon } from "lucide-react"
 
-const tags = [
-  { name: "AI", count: 1 },
-  { name: "Community", count: 2 },
-  { name: "Compatibility", count: 1 },
-  { name: "CSS", count: 2 },
-  { name: "Design", count: 1 },
-  { name: "Framework", count: 2 },
-  { name: "Git", count: 1 },
-  { name: "HTML", count: 2 },
-  { name: "JavaScript", count: 3 },
-  { name: "Layout", count: 1 },
-  { name: "Learning", count: 6 },
-  { name: "Performance", count: 2 },
-  { name: "Practice", count: 5 },
-  { name: "Reference", count: 5 },
-  { name: "Tips", count: 4 },
-  { name: "Tools", count: 2 },
-  { name: "Tutorial", count: 3 },
-]
+
 
 interface SidebarProps {
   selectedTags?: string[];
   onTagToggle?: (tag: string) => void;
+  tags?: { name: string, count: number }[];
+  activeView?: 'home' | 'archived';
+  onViewChange?: (view: 'home' | 'archived') => void;
+  archivedCount?: number;
 }
 
-export default function Sidebar({ selectedTags = [], onTagToggle }: SidebarProps) {
+export default function Sidebar({ selectedTags = [], onTagToggle, tags = [], activeView = 'home', onViewChange, archivedCount = 0 }: SidebarProps) {
   
 
   return (
-    <aside className="w-64 bg-white border-r border-e-gray-200 p-4 flex flex-col">
+    <aside className="sidebar-bar w-64 bg-white dark:bg-[#111315] border-r border-gray-100 dark:border-[#292d32] p-4 flex flex-col transition-colors duration-300">
       {/* Logo */}
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center">
@@ -47,40 +33,59 @@ export default function Sidebar({ selectedTags = [], onTagToggle }: SidebarProps
             <rect x="14" y="14" width="6" height="6" rx="1" fill="white" />
           </svg>
         </div>
-        <span className="font-semibold text-foreground text-lg">Bookmark Manager</span>
+        <span className="font-semibold text-gray-900 dark:text-white/90 text-lg">Bookmark Manager</span>
       </div>
 
       {/* Navigation */}
       <nav className="space-y-1 mb-6">
-        <button className="w-full flex items-center border border-gray-200 cursor-pointer gap-3 px-3 py-2 rounded-lg bg-accent text-accent-foreground font-medium">
+        <button 
+          onClick={() => onViewChange?.('home')}
+          className={`w-full flex items-center border cursor-pointer gap-3 px-3 py-2 rounded-lg font-medium transition-colors ${
+            activeView === 'home' 
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400' 
+              : 'border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          }`}
+        >
           <HomeIcon size={16} />
           Home
         </button>
-        <button className="w-full flex items-center border border-gray-200 cursor-pointer gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+        <button 
+          onClick={() => onViewChange?.('archived')}
+          className={`w-full flex items-center border cursor-pointer gap-3 px-3 py-2 rounded-lg transition-colors ${
+            activeView === 'archived' 
+              ? 'border-amber-200 bg-amber-50 text-amber-700 font-medium dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400' 
+              : 'border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          }`}
+        >
           <ArchiveIcon size={16} />
           Archived
+          {archivedCount > 0 && (
+            <span className="ml-auto text-xs font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+              {archivedCount}
+            </span>
+          )}
         </button>
       </nav>
 
       {/* Tags */}
       <div className="flex-1 overflow-y-auto">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">
           Tags
         </h3>
         <div className="space-y-1">
           {tags.map((tag) => (
             <label
               key={tag.name}
-              className="flex items-center gap-3 px-1 py-1.5 rounded cursor-pointer hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-1 py-1.5 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
             >
               <input
                 type="checkbox"
-                className="h-4 w-4 border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                className="h-4 w-4 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 accent-emerald-600 dark:accent-emerald-400 cursor-pointer"
                 checked={selectedTags.includes(tag.name)}
                 onChange={() => onTagToggle?.(tag.name)}
               />
-              <span className="flex-1 text-sm text-foreground">{tag.name}</span>
-              <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full bg-slate-200">
+              <span className="flex-1 text-sm text-gray-700 dark:text-slate-300">{tag.name}</span>
+              <span className="tag-count text-xs font-medium text-gray-500 dark:text-slate-400 bg-slate-100 dark:bg-[#292d32] px-2 py-0.5 rounded-full">
                 {tag.count}
               </span>
             </label>
